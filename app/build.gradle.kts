@@ -4,8 +4,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin") version "2.0.1" apply false
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.21"
+    alias(libs.plugins.google.maps.secrets)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -69,6 +69,8 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    implementation(libs.coil.compose)
 
     implementation(libs.androidx.material3)
     implementation(libs.androidx.compose.material.icons.core)
