@@ -1,6 +1,8 @@
 package com.cleansea.data
 
+import androidx.annotation.StringRes
 import kotlinx.serialization.Serializable
+import com.cleansea.R
 
 @Serializable // Используем kotlinx.serialization для парсинга JSON
 data class PollutionPoint(
@@ -17,16 +19,16 @@ data class PollutionPoint(
 )
 
 @Serializable
-enum class PollutionType(val displayName: String) {
-    TRASH("Мусор"),
-    OIL_SPOT("Нефтяное пятно"),
-    INDUSTRIAL_WASTE("Промышленные отходы"),
-    OTHER("Другое")
+enum class PollutionType(@StringRes val displayNameResId: Int) {
+    TRASH(R.string.pollution_type_trash),
+    OIL_SPOT(R.string.pollution_type_oil_spot),
+    INDUSTRIAL_WASTE(R.string.pollution_type_industrial_waste),
+    OTHER(R.string.pollution_type_other)
 }
 
 @Serializable
-enum class PollutionStatus(val displayName: String) {
-    DETECTED("Обнаружено"),
-    IN_PROGRESS("В работе"),
-    CLEARED("Очищено")
+enum class PollutionStatus(@StringRes val displayNameResId: Int) {
+    DETECTED(R.string.status_detected),
+    IN_PROGRESS(R.string.status_in_progress),
+    CLEARED(R.string.status_cleared)
 }

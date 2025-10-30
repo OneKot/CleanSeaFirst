@@ -8,11 +8,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -24,13 +28,10 @@ import com.cleansea.ui.navigation.Screen
 import com.cleansea.ui.screens.AddPointScreen
 import com.cleansea.ui.screens.AuthScreen
 import com.cleansea.ui.screens.MapScreen
+import com.cleansea.ui.screens.SettingsScreen
 import com.cleansea.ui.screens.StatisticsScreen
 import com.cleansea.ui.theme.CleanSeaTheme
 import kotlinx.coroutines.launch
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
-import com.cleansea.ui.screens.SettingsScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,7 +75,6 @@ fun AppNavigation() {
                 AppDrawerContent(navController = navController, currentRoute = currentRoute) {
                     scope.launch { drawerState.close() }
                 }
-
             },
             gesturesEnabled = false
         ) {
@@ -83,19 +83,21 @@ fun AppNavigation() {
                 topBar = {
                     TopAppBar(
                         title = {
-                            val title = when (currentRoute) {
-                                Screen.Map.route -> Screen.Map.title
-                                Screen.Statistics.route -> Screen.Statistics.title
-                                Screen.Settings.route -> Screen.Settings.title
-                                else -> "Чистый Каспий"
+                            // --- ИЗМЕНЕНИЕ 1 ---
+                            // Получаем заголовок из ID ресурса
+                            val titleResId = when (currentRoute) {
+                                Screen.Map.route -> Screen.Map.titleResId
+                                Screen.Statistics.route -> Screen.Statistics.titleResId
+                                Screen.Settings.route -> Screen.Settings.titleResId
+                                else -> R.string.app_name
                             }
-                            Text(title)
+                            Text(stringResource(id = titleResId))
                         },
                         navigationIcon = {
                             IconButton(onClick = {
                                 scope.launch { drawerState.open() }
                             }) {
-                                Icon(Icons.Filled.Menu, contentDescription = "Меню")
+                                Icon(Icons.Filled.Menu, contentDescription = stringResource(R.string.menu))
                             }
                         }
                     )
@@ -108,7 +110,6 @@ fun AppNavigation() {
             }
         }
     } else {
-        // Если не авторизован - показываем только NavHost с экраном входа
         AppNavHost(navController = navController)
     }
 }
@@ -148,11 +149,14 @@ fun AppDrawerContent(
     onCloseDrawer: () -> Unit
 ) {
     ModalDrawerSheet {
-        Text("Меню", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.menu), modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
         Divider()
+
+        // --- ИЗМЕНЕНИЕ 2 ---
+        // Используем stringResource для всех пунктов меню
         NavigationDrawerItem(
-            icon = { Icon(Icons.Default.Map, contentDescription = "Карта") },
-            label = { Text(Screen.Map.title) },
+            icon = { Icon(Icons.Default.Map, contentDescription = null) },
+            label = { Text(stringResource(id = Screen.Map.titleResId)) },
             selected = currentRoute == Screen.Map.route,
             onClick = {
                 navController.navigate(Screen.Map.route) { popUpTo(Screen.Map.route) { inclusive = true } }
@@ -160,17 +164,17 @@ fun AppDrawerContent(
             }
         )
         NavigationDrawerItem(
-            icon = { Icon(Icons.Default.BarChart, contentDescription = "Статистика") },
-            label = { Text(Screen.Statistics.title) },
+            icon = { Icon(Icons.Default.BarChart, contentDescription = null) },
+            label = { Text(stringResource(id = Screen.Statistics.titleResId)) },
             selected = currentRoute == Screen.Statistics.route,
             onClick = {
-                navController.navigate(Screen.Statistics.route) { popUpTo(Screen.Map.route) } // Возврат на карту по кнопке "назад"
+                navController.navigate(Screen.Statistics.route) { popUpTo(Screen.Map.route) }
                 onCloseDrawer()
             }
         )
         NavigationDrawerItem(
-            icon = { Icon(Icons.Default.Settings, contentDescription = "Настройки") },
-            label = { Text(Screen.Settings.title) },
+            icon = { Icon(Icons.Default.Settings, contentDescription = null) },
+            label = { Text(stringResource(id = Screen.Settings.titleResId)) },
             selected = currentRoute == Screen.Settings.route,
             onClick = {
                 navController.navigate(Screen.Settings.route) { popUpTo(Screen.Map.route) }

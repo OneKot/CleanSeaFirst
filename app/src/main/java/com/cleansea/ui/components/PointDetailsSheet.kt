@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,7 +57,7 @@ fun PointDetailsSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = point.type.displayName,
+                    text = stringResource(id = point.type.displayNameResId),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -122,7 +123,7 @@ fun StatusBadge(status: PollutionStatus) {
         colors = CardDefaults.cardColors(containerColor = color)
     ) {
         Text(
-            text = status.displayName,
+            text = stringResource(id = status.displayNameResId),
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
@@ -150,7 +151,7 @@ fun AdminControls(
                     onClick = { onStatusChange(status) },
                     enabled = status != currentStatus
                 ) {
-                    Text(status.displayName)
+                    Text(stringResource(id = status.displayNameResId))
                 }
             }
         }

@@ -1,3 +1,45 @@
+<!-- res/values/strings.xml -->
 <resources>
     <string name="app_name">CleanSea</string>
+
+    <!-- Названия экранов -->
+    <string name="screen_title_map">Карта</string>
+    <string name="screen_title_statistics">Статистика</string>
+    <string name="screen_title_settings">Настройки</string>
+    <string name="screen_title_add_point">Сообщить о загрязнении</string>
+    <string name="screen_title_auth">Авторизация</string>
+
+    <!-- Типы загрязнений -->
+    <string name="pollution_type_trash">Мусор</string>
+    <string name="pollution_type_oil_spot">Нефтяное пятно</string>
+    <string name="pollution_type_industrial_waste">Промышленные отходы</string>
+    <string name="pollution_type_other">Другое</string>
+
+    <!-- Статусы загрязнений -->
+    <string name="status_detected">Обнаружено</string>
+    <string name="status_in_progress">В работе</string>
+    <string name="status_cleared">Очищено</string>
+
+    <!-- Экран настроек -->
+    <string name="settings_section_main">Основные</string>
+    <string name="settings_language">Язык приложения</string>
+    <string name="settings_language_change">Изменить</string>
+    <string name="settings_volunteer_title">Стать волонтером</string>
+    <string name="settings_volunteer_subtitle">Получать уведомления о новых точках</string>
+    <string name="settings_section_admin">Администрирование</string>
+    <string name="settings_export_title">Экспорт данных</string>
+    <string name="settings_export_subtitle">Вы можете выгрузить все данные о точках загрязнения в виде отчета.</string>
+    <string name="settings_export_button">Экспортировать отчеты</string>
+    <string name="settings_export_generating">Генерация...</string>
+
+    <!-- Диалог выбора языка -->
+    <string name="language_dialog_title">Выберите язык</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_en">English</string>
+    <string name="language_kk">Қазақша</string>
+
+    <!-- Другое -->
+    <string name="menu">Меню</string>
+    <string name="close">Закрыть</string>
+
 </resources>

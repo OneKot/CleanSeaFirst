@@ -7,6 +7,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -67,7 +68,7 @@ fun StatisticsScreen(viewModel: MainViewModel = viewModel()) {
                 Text("Разбивка по типам", style = MaterialTheme.typography.titleLarge)
                 Spacer(Modifier.height(8.dp))
                 PollutionType.values().forEach { type ->
-                    StatRow(type.displayName, stats.pointsByType[type] ?: 0)
+                    StatRow(stringResource(id = type.displayNameResId), stats.pointsByType[type] ?: 0)
                 }
             }
         }

@@ -1,25 +1,80 @@
 package com.cleansea.ui.screens
 
-import android.widget.Toast
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cleansea.MainViewModel
+import com.cleansea.R
 
 @Composable
 fun SettingsScreen(viewModel: MainViewModel = viewModel()) {
     val context = LocalContext.current
     val isAdmin = viewModel.isAdmin.value
+    var showLanguageDialog by remember { mutableStateOf(false) }
 
+    // --- Диалоговое окно для выбора языка ---
+    if (showLanguageDialog) {
+        AlertDialog(
+            onDismissRequest = { showLanguageDialog = false },
+            title = { Text(stringResource(R.string.language_dialog_title)) },
+            text = {
+                Column {
+                    // Русский
+                    Text(
+                        text = stringResource(R.string.language_ru),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                viewModel.changeLanguage(context, "ru")
+                                showLanguageDialog = false
+                            }
+                            .padding(vertical = 12.dp)
+                    )
+                    // Английский
+                    Text(
+                        text = stringResource(R.string.language_en),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                viewModel.changeLanguage(context, "en")
+                                showLanguageDialog = false
+                            }
+                            .padding(vertical = 12.dp)
+                    )
+                    // Казахский
+                    Text(
+                        text = stringResource(R.string.language_kk),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                viewModel.changeLanguage(context, "kk")
+                                showLanguageDialog = false
+                            }
+                            .padding(vertical = 12.dp)
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showLanguageDialog = false }) {
+                    Text(stringResource(R.string.close))
+                }
+            }
+        )
+    }
+
+    // --- Основной контент экрана ---
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -27,28 +82,36 @@ fun SettingsScreen(viewModel: MainViewModel = viewModel()) {
             .verticalScroll(rememberScrollState())
     ) {
         // --- Секция общих настроек ---
-        Text("Основные", style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.settings_section_main), style = MaterialTheme.typography.titleLarge)
         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
+        // Карточка смены языка
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Язык приложения", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.settings_language), style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Русский")
-                    Button(onClick = {
-                        viewModel.changeLanguage("ru")
-                        Toast.makeText(context, "Функция смены языка в разработке", Toast.LENGTH_SHORT).show()
-                    }) {
-                        Text("Изменить")
+                    // Показываем текущий язык системы
+                    val currentLangTag = AppCompatDelegate.getApplicationLocales().toLanguageTags()
+                    val currentLang = when {
+                        currentLangTag.startsWith("ru") -> stringResource(R.string.language_ru)
+                        currentLangTag.startsWith("en") -> stringResource(R.string.language_en)
+                        currentLangTag.startsWith("kk") -> stringResource(R.string.language_kk)
+                        else -> "Unknown"
+                    }
+                    Text(currentLang)
+                    Button(onClick = { showLanguageDialog = true }) {
+                        Text(stringResource(R.string.settings_language_change))
                     }
                 }
             }
         }
 
+        // Карточка статуса волонтера
         Spacer(Modifier.height(16.dp))
         Card(modifier = Modifier.fillMaxWidth()) {
             Row(
@@ -59,9 +122,9 @@ fun SettingsScreen(viewModel: MainViewModel = viewModel()) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Стать волонтером", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.settings_volunteer_title), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "Получать уведомления о новых точках",
+                        stringResource(R.string.settings_volunteer_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -73,31 +136,36 @@ fun SettingsScreen(viewModel: MainViewModel = viewModel()) {
             }
         }
 
+        // --- Секция только для администраторов ---
         if (isAdmin) {
             Spacer(Modifier.height(24.dp))
-            Text("Администрирование", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.settings_section_admin), style = MaterialTheme.typography.titleLarge)
             Divider(modifier = Modifier.padding(vertical = 8.dp))
 
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Экспорт данных", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.settings_export_title), style = MaterialTheme.typography.titleMedium)
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "Вы можете выгрузить все данные о точках загрязнения в виде отчета.",
+                        stringResource(R.string.settings_export_subtitle),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(Modifier.height(16.dp))
 
                     OutlinedButton(
-                        onClick = {
-                            viewModel.exportReports()
-                            Toast.makeText(context, "Экспорт отчета запущен...", Toast.LENGTH_SHORT).show()
-                        },
+                        onClick = { viewModel.exportReports(context) }, // <-- ПРАВИЛЬНЫЙ ВЫЗОВ
+                        enabled = !viewModel.isLoading.value,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Icon(Icons.Default.Download, contentDescription = "Экспорт")
-                        Spacer(Modifier.width(8.dp))
-                        Text("Экспортировать отчеты")
+                        if (viewModel.isLoading.value) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.settings_export_generating))
+                        } else {
+                            Icon(Icons.Default.Download, contentDescription = "Экспорт")
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.settings_export_button))
+                        }
                     }
                 }
             }

@@ -24,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -32,6 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.cleansea.MainViewModel
+import com.cleansea.R // <-- ВАЖНЫЙ ИМПОРТ ДЛЯ R.string...
 import com.cleansea.data.PollutionPoint
 import com.cleansea.data.PollutionType
 import java.io.File
@@ -84,10 +86,10 @@ fun AddPointScreen(navController: NavController, viewModel: MainViewModel = view
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Сообщить о загрязнении") },
+                title = { Text(stringResource(R.string.screen_title_add_point)) }, // <-- ИЗМЕНЕНИЕ 1
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Назад") // Можно тоже вынести в ресурсы
                     }
                 }
             )
@@ -102,13 +104,12 @@ fun AddPointScreen(navController: NavController, viewModel: MainViewModel = view
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (viewModel.newPointCoords.value != null) {
-                // ... ваш код для отображения координат и выбора типа ...
                 Text(
                     text = "Координаты: ${"%.4f".format(viewModel.newPointCoords.value?.latitude)}, ${"%.4f".format(viewModel.newPointCoords.value?.longitude)}",
                     style = MaterialTheme.typography.labelMedium
                 )
                 Spacer(Modifier.height(16.dp))
-                Text(text = "Выберите тип загрязнения", style = MaterialTheme.typography.titleMedium)
+                Text(text = "Выберите тип загрязнения", style = MaterialTheme.typography.titleMedium) // Можно вынести
                 Spacer(Modifier.height(8.dp))
                 PollutionTypeSelector(
                     selectedType = viewModel.newPointType.value,
@@ -120,9 +121,9 @@ fun AddPointScreen(navController: NavController, viewModel: MainViewModel = view
                 Card(modifier = Modifier.fillMaxWidth().height(200.dp)) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         if (imageToDisplay != null) {
-                            key(imageVersion) { // <-- ИСПОЛЬЗУЕМ KEY ЗДЕСЬ
+                            key(imageVersion) {
                                 Image(
-                                    painter = rememberAsyncImagePainter(imageToDisplay), // <-- ПРОСТОЙ ВЫЗОВ
+                                    painter = rememberAsyncImagePainter(imageToDisplay),
                                     contentDescription = "Выбранное фото",
                                     modifier = Modifier.fillMaxSize(),
                                     contentScale = ContentScale.Crop
@@ -143,13 +144,12 @@ fun AddPointScreen(navController: NavController, viewModel: MainViewModel = view
                                 Icon(Icons.Default.Delete, contentDescription = "Удалить фото", tint = Color.White)
                             }
                         } else {
-                            Text("Добавьте фото", style = MaterialTheme.typography.bodyLarge)
+                            Text("Добавьте фото", style = MaterialTheme.typography.bodyLarge) // Можно вынести
                         }
                     }
                 }
                 Spacer(Modifier.height(8.dp))
 
-                // ... ваш код для кнопок, поля описания и кнопки "Сообщить" ...
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -157,7 +157,7 @@ fun AddPointScreen(navController: NavController, viewModel: MainViewModel = view
                     Button(onClick = { imagePickerLauncher.launch("image/*") }, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Default.PhotoLibrary, contentDescription = "Галерея")
                         Spacer(Modifier.width(8.dp))
-                        Text("Галерея")
+                        Text("Галерея") // Можно вынести
                     }
                     Button(onClick = {
                         val newUri = createImageUri(context)
@@ -166,12 +166,13 @@ fun AddPointScreen(navController: NavController, viewModel: MainViewModel = view
                     }, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Default.CameraAlt, contentDescription = "Камера")
                         Spacer(Modifier.width(8.dp))
-                        Text("Камера")
+                        Text("Камера") // Можно вынести
                     }
                 }
                 Spacer(Modifier.height(16.dp))
                 OutlinedTextField(value = viewModel.newPointDescription.value, onValueChange = { viewModel.newPointDescription.value = it }, label = { Text("Описание (необязательно)") }, modifier = Modifier.fillMaxWidth().height(120.dp), maxLines = 4)
                 Spacer(Modifier.height(24.dp))
+                val titleText = stringResource(id = viewModel.newPointType.value.displayNameResId)
                 Button(
                     onClick = {
                         val finalImageUri = cameraImageUri ?: selectedImageUris.firstOrNull()
@@ -179,19 +180,19 @@ fun AddPointScreen(navController: NavController, viewModel: MainViewModel = view
                             id = UUID.randomUUID().toString(),
                             latitude = viewModel.newPointCoords.value!!.latitude,
                             longitude = viewModel.newPointCoords.value!!.longitude,
-                            title = viewModel.newPointType.value.displayName,
+                            title = titleText,
                             description = viewModel.newPointDescription.value,
                             type = viewModel.newPointType.value,
                             imageUrl = finalImageUri?.toString()
                         )
                         viewModel.addPollutionPoint(newPoint)
-                        Toast.makeText(context, "Точка добавлена!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Точка добавлена!", Toast.LENGTH_SHORT).show() // Можно вынести
                         navController.popBackStack()
                     },
                     enabled = !viewModel.isLoading.value && imageToDisplay != null,
                     modifier = Modifier.fillMaxWidth().height(50.dp)
                 ) {
-                    Text("Сообщить")
+                    Text("Сообщить") // Можно вынести
                 }
             } else {
                 Text(
@@ -214,7 +215,16 @@ fun PollutionTypeSelector(selectedType: PollutionType, onTypeSelected: (Pollutio
                 modifier = Modifier.weight(1f),
                 selected = selectedType == type,
                 onClick = { onTypeSelected(type) },
-                label = { Text(text = type.displayName, textAlign = TextAlign.Center, modifier = Modifier.fillMaxWidth(), maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                label = {
+                    Text(
+                        // <-- ИЗМЕНЕНИЕ 2
+                        text = stringResource(id = type.displayNameResId),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             )
         }
     }

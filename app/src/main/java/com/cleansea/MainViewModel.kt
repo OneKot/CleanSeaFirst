@@ -1,5 +1,7 @@
 package com.cleansea
 
+import android.content.Context
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -13,6 +15,7 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.core.os.LocaleListCompat
 
 data class PollutionStats(
     val totalPoints: Int = 0,
@@ -68,14 +71,17 @@ class MainViewModel : ViewModel() {
     val selectedPoint = mutableStateOf<PollutionPoint?>(null)
     val isVolunteer = mutableStateOf(false)
     val notificationMessage = mutableStateOf<String?>(null)
+    val csvExportContent = mutableStateOf<String?>(null)
 
-    // Переменные для добавления новой точки
     val newPointCoords = mutableStateOf<LatLng?>(null)
     val newPointType = mutableStateOf(PollutionType.TRASH)
     val newPointDescription = mutableStateOf("")
     val newPointImageUrl = mutableStateOf<String?>(null)
     fun toggleVolunteerStatus() {
         isVolunteer.value = !isVolunteer.value
+    }
+    fun onCsvExported() {
+        csvExportContent.value = null
     }
 
     fun clearNotificationMessage() {
@@ -203,16 +209,40 @@ class MainViewModel : ViewModel() {
             pointsByType = points.groupingBy { it.type }.eachCount()
         )
     }
-    fun changeLanguage(langCode: String) {
-        println("App language changed to: $langCode")
+    fun changeLanguage(context: Context, langCode: String) {
+        val localeList = LocaleListCompat.forLanguageTags(langCode)
+        AppCompatDelegate.setApplicationLocales(localeList)
     }
 
-    fun exportReports() {
+    fun exportReports(context: Context) {
         isLoading.value = true
         viewModelScope.launch {
-            delay(2000)
+            // Генерируем контент в фоновом потоке
+            val csvContent = generateCsvContent(context)
+            // Передаем готовый контент в наше состояние
+            csvExportContent.value = csvContent
             isLoading.value = false
-            println("Reports exported successfully!")
         }
     }
+    private fun generateCsvContent(context: Context): String {
+        val header = "ID,Тип,Статус,Описание,Широта,Долгота,URL Фото"
+        val stringBuilder = StringBuilder()
+        stringBuilder.appendLine(header)
+
+        pollutionPoints.forEach { point ->
+            val description = "\"${point.description.replace("\"", "\"\"")}\"" // Экранируем кавычки в описании
+            val line = listOf(
+                point.id,
+                context.getString(point.type.displayNameResId),
+                context.getString(point.status.displayNameResId),
+                description,
+                point.latitude.toString(),
+                point.longitude.toString(),
+                point.imageUrl ?: "N/A"
+            ).joinToString(",")
+            stringBuilder.appendLine(line)
+        }
+        return stringBuilder.toString()
+    }
+
 }

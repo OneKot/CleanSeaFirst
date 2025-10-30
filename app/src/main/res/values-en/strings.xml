@@ -1,0 +1,38 @@
+<!-- res/values-en/strings.xml -->
+<resources>
+    <string name="app_name">CleanSea</string>
+
+    <string name="screen_title_map">Map</string>
+    <string name="screen_title_statistics">Statistics</string>
+    <string name="screen_title_settings">Settings</string>
+    <string name="screen_title_add_point">Report Pollution</string>
+    <string name="screen_title_auth">Authorization</string>
+
+    <string name="pollution_type_trash">Trash</string>
+    <string name="pollution_type_oil_spot">Oil Spot</string>
+    <string name="pollution_type_industrial_waste">Industrial Waste</string>
+    <string name="pollution_type_other">Other</string>
+
+    <string name="status_detected">Detected</string>
+    <string name="status_in_progress">In Progress</string>
+    <string name="status_cleared">Cleared</string>
+
+    <string name="settings_section_main">General</string>
+    <string name="settings_language">App Language</string>
+    <string name="settings_language_change">Change</string>
+    <string name="settings_volunteer_title">Become a Volunteer</string>
+    <string name="settings_volunteer_subtitle">Receive notifications about new points</string>
+    <string name="settings_section_admin">Administration</string>
+    <string name="settings_export_title">Data Export</string>
+    <string name="settings_export_subtitle">You can export all pollution point data as a report.</string>
+    <string name="settings_export_button">Export Reports</string>
+    <string name="settings_export_generating">Generating...</string>
+
+    <string name="language_dialog_title">Choose language</string>
+    <string name="language_ru">Русский</string>
+    <string name="language_en">English</string>
+    <string name="language_kk">Қазақша</string>
+
+    <string name="menu">Menu</string>
+    <string name="close">Close</string>
+</resources>
