@@ -109,17 +109,15 @@ fun AddPointScreen(navController: NavController, viewModel: MainViewModel = view
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        // 1. ИСПРАВЛЕНА ОШИБКА С ИМЕНЕМ ПЕРЕМЕННОЙ
                         if (selectedImageUris.isNotEmpty()) {
                             Image(
-                                painter = rememberAsyncImagePainter(model = selectedImageUris.first()), // Отображаем первое фото
+                                painter = rememberAsyncImagePainter(model = selectedImageUris.first()),
                                 contentDescription = "Выбранное фото",
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
                             )
                             IconButton(
                                 onClick = {
-                                    // 1. ИСПРАВЛЕНА ЛОГИКА ОЧИСТКИ
                                     selectedImageUris = emptyList()
                                     viewModel.newPointImageUrl.value = null
                                 },
@@ -212,7 +210,6 @@ fun PollutionTypeSelector(
             FilterChip(
                 selected = selectedType == type,
                 onClick = { onTypeSelected(type) },
-                // capitalize() устарел, используем более современный вариант
                 label = { Text(type.name.replace('_', ' ').replaceFirstChar { it.uppercase() }) }
             )
         }

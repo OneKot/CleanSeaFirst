@@ -102,9 +102,6 @@ fun LoginContent(viewModel: MainViewModel, onNavigateToRegister: () -> Unit) {
         Text("Войти")
     }
     Spacer(Modifier.height(8.dp))
-    TextButton(onClick = { /* TODO: Восстановление пароля */ }) {
-        Text("Забыли пароль?")
-    }
     TextButton(onClick = onNavigateToRegister) {
         Text("У вас нет аккаунта? Зарегистрироваться")
     }

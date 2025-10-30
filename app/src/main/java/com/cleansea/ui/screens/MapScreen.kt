@@ -35,10 +35,12 @@ import com.cleansea.data.PollutionStatus
 import com.cleansea.data.PollutionType
 import com.cleansea.ui.navigation.Screen
 import kotlinx.coroutines.launch
+import com.cleansea.ui.components.PointDetailsSheet
 
 @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(navController: NavController, viewModel: MainViewModel = viewModel()) {
+    val selectedPoint by viewModel.selectedPoint
     val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -147,17 +149,23 @@ fun MapScreen(navController: NavController, viewModel: MainViewModel = viewModel
                         snippet = point.description,
                         icon = markerColor, // Кастомная иконка по статусу
                         onClick = { marker ->
-                            // Навигация к деталям точки (заглушка)
-                            scope.launch {
-                                snackbarHostState.showSnackbar("Детали точки: ${point.title} (ID: ${point.id})")
-                            }
-                            // Если бы был экран деталей: navController.navigate("detail/${point.id}")
-                            true // Возвращаем true, чтобы обработать клик и не показывать стандартный InfoWindow
+                            viewModel.onMarkerClick(point)
+                            true
                         }
                     )
                 }
             }
 
+            selectedPoint?.let { point ->
+                PointDetailsSheet(
+                    point = point,
+                    isAdmin = viewModel.isAdmin.value,
+                    onDismiss = { viewModel.dismissPointDetails() },
+                    onStatusChange = { newStatus ->
+                        viewModel.updatePollutionPointStatus(point.id, newStatus)
+                    }
+                )
+            }
             // Индикатор загрузки
             if (viewModel.isLoading.value) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))

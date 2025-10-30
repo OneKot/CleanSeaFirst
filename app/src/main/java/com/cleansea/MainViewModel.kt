@@ -44,20 +44,21 @@ class ApiService {
 
     suspend fun updatePollutionPointStatus(pointId: String, status: PollutionStatus): PollutionPoint {
         delay(300)
-        // В реальном приложении здесь была бы логика обновления в БД
+
         return PollutionPoint(id = pointId, latitude = 0.0, longitude = 0.0, title = "", description = "", type = PollutionType.OTHER, status = status)
     }
 }
 
 
 class MainViewModel : ViewModel() {
-    private val apiService = ApiService() // В реальном проекте это был бы DI
+    private val apiService = ApiService()
 
     val pollutionPoints = mutableStateListOf<PollutionPoint>()
     val isLoading = mutableStateOf(false)
     val errorMessage = mutableStateOf<String?>(null)
     val isAuthenticated = mutableStateOf(false) // Статус авторизации
     val isAdmin = mutableStateOf(false) // Статус админа
+    val selectedPoint = mutableStateOf<PollutionPoint?>(null)
 
     // Переменные для добавления новой точки
     val newPointCoords = mutableStateOf<LatLng?>(null)
@@ -68,6 +69,12 @@ class MainViewModel : ViewModel() {
     init {
         // Загружаем точки при инициализации ViewModel
         fetchPollutionPoints()
+    }
+    fun onMarkerClick(point: PollutionPoint) {
+        selectedPoint.value = point
+    }
+    fun dismissPointDetails() {
+        selectedPoint.value = null
     }
 
     fun fetchPollutionPoints() {
@@ -120,6 +127,7 @@ class MainViewModel : ViewModel() {
                 errorMessage.value = "Ошибка обновления статуса: ${e.message}"
             } finally {
                 isLoading.value = false
+                dismissPointDetails() // <-- ЗАКРЫВАЕМ ОКНО ПОСЛЕ ОБНОВЛЕНИЯ
             }
         }
     }
@@ -130,12 +138,15 @@ class MainViewModel : ViewModel() {
         errorMessage.value = null
         viewModelScope.launch {
             delay(1000)
-            if (email == "admin@example.com" && password == "admin") {
+            if (email == "admin" && password == "admin") {
                 isAuthenticated.value = true
                 isAdmin.value = true
-            } else if (email == "user@example.com" && password == "user") {
+            } else if (email == "user" && password == "user") {
                 isAuthenticated.value = true
                 isAdmin.value = false
+            }else if (email == "a" && password == "a") {
+                isAuthenticated.value = true
+                isAdmin.value = true
             } else {
                 errorMessage.value = "Неверный логин или пароль"
             }
