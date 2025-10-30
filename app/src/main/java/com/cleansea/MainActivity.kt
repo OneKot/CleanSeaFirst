@@ -28,6 +28,8 @@ import com.cleansea.ui.screens.StatisticsScreen
 import com.cleansea.ui.theme.CleanSeaTheme
 import kotlinx.coroutines.launch
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import com.cleansea.ui.screens.SettingsScreen
 
 class MainActivity : ComponentActivity() {
@@ -49,8 +51,21 @@ fun AppNavigation() {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
+    val snackbarHostState = remember { SnackbarHostState() }
+    val notificationMessage by viewModel.notificationMessage
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    LaunchedEffect(notificationMessage) {
+        if (notificationMessage != null) {
+            snackbarHostState.showSnackbar(
+                message = notificationMessage!!,
+                duration = SnackbarDuration.Short
+            )
+            viewModel.clearNotificationMessage()
+        }
+    }
 
     if (viewModel.isAuthenticated.value) {
         ModalNavigationDrawer(
@@ -64,6 +79,7 @@ fun AppNavigation() {
             gesturesEnabled = false
         ) {
             Scaffold(
+                snackbarHost = { SnackbarHost(snackbarHostState) },
                 topBar = {
                     TopAppBar(
                         title = {

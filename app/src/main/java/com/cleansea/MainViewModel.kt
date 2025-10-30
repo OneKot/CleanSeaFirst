@@ -66,12 +66,21 @@ class MainViewModel : ViewModel() {
     val isAuthenticated = mutableStateOf(false) // Статус авторизации
     val isAdmin = mutableStateOf(false) // Статус админа
     val selectedPoint = mutableStateOf<PollutionPoint?>(null)
+    val isVolunteer = mutableStateOf(false)
+    val notificationMessage = mutableStateOf<String?>(null)
 
     // Переменные для добавления новой точки
     val newPointCoords = mutableStateOf<LatLng?>(null)
     val newPointType = mutableStateOf(PollutionType.TRASH)
     val newPointDescription = mutableStateOf("")
-    val newPointImageUrl = mutableStateOf<String?>(null) // Для заглушки, в реале будет загрузка
+    val newPointImageUrl = mutableStateOf<String?>(null)
+    fun toggleVolunteerStatus() {
+        isVolunteer.value = !isVolunteer.value
+    }
+
+    fun clearNotificationMessage() {
+        notificationMessage.value = null
+    }
 
     init {
         // Загружаем точки при инициализации ViewModel
@@ -105,6 +114,12 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val addedPoint = apiService.addPollutionPoint(point)
+                if (isVolunteer.value) {
+                    notificationMessage.value = "Новая точка: ${addedPoint.title}"
+                }
+                // Сброс полей для новой точки
+                newPointCoords.value = null
+
                 pollutionPoints.add(addedPoint)
                 // Сброс полей для новой точки
                 newPointCoords.value = null
