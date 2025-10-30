@@ -188,4 +188,16 @@ class MainViewModel : ViewModel() {
             pointsByType = points.groupingBy { it.type }.eachCount()
         )
     }
+    fun changeLanguage(langCode: String) {
+        println("App language changed to: $langCode")
+    }
+
+    fun exportReports() {
+        isLoading.value = true
+        viewModelScope.launch {
+            delay(2000)
+            isLoading.value = false
+            println("Reports exported successfully!")
+        }
+    }
 }

@@ -27,6 +27,8 @@ import com.cleansea.ui.screens.MapScreen
 import com.cleansea.ui.screens.StatisticsScreen
 import com.cleansea.ui.theme.CleanSeaTheme
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.Settings
+import com.cleansea.ui.screens.SettingsScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,7 +52,6 @@ fun AppNavigation() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Показываем боковое меню только если пользователь авторизован
     if (viewModel.isAuthenticated.value) {
         ModalNavigationDrawer(
             drawerState = drawerState,
@@ -69,6 +70,7 @@ fun AppNavigation() {
                             val title = when (currentRoute) {
                                 Screen.Map.route -> Screen.Map.title
                                 Screen.Statistics.route -> Screen.Statistics.title
+                                Screen.Settings.route -> Screen.Settings.title
                                 else -> "Чистый Каспий"
                             }
                             Text(title)
@@ -112,11 +114,13 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
             MapScreen(navController = navController, viewModel = viewModel)
         }
         composable(Screen.AddPoint.route) {
-            // У экрана добавления точки не будет бокового меню, т.к. он не в основной навигации
             AddPointScreen(navController = navController, viewModel = viewModel)
         }
         composable(Screen.Statistics.route) {
             StatisticsScreen(viewModel = viewModel)
+        }
+        composable(Screen.Settings.route) {
+            SettingsScreen(viewModel = viewModel)
         }
     }
 }
@@ -145,6 +149,15 @@ fun AppDrawerContent(
             selected = currentRoute == Screen.Statistics.route,
             onClick = {
                 navController.navigate(Screen.Statistics.route) { popUpTo(Screen.Map.route) } // Возврат на карту по кнопке "назад"
+                onCloseDrawer()
+            }
+        )
+        NavigationDrawerItem(
+            icon = { Icon(Icons.Default.Settings, contentDescription = "Настройки") },
+            label = { Text(Screen.Settings.title) },
+            selected = currentRoute == Screen.Settings.route,
+            onClick = {
+                navController.navigate(Screen.Settings.route) { popUpTo(Screen.Map.route) }
                 onCloseDrawer()
             }
         )
