@@ -11,7 +11,14 @@ import com.cleansea.data.PollutionType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.UUID
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 
+data class PollutionStats(
+    val totalPoints: Int = 0,
+    val pointsByStatus: Map<PollutionStatus, Int> = emptyMap(),
+    val pointsByType: Map<PollutionType, Int> = emptyMap()
+)
 class ApiService {
     suspend fun fetchPollutionPoints(): List<PollutionPoint> {
         delay(1000) // Имитация задержки сети
@@ -172,5 +179,13 @@ class MainViewModel : ViewModel() {
     fun logout() {
         isAuthenticated.value = false
         isAdmin.value = false
+    }
+    val stats by derivedStateOf {
+        val points = pollutionPoints
+        PollutionStats(
+            totalPoints = points.size,
+            pointsByStatus = points.groupingBy { it.status }.eachCount(),
+            pointsByType = points.groupingBy { it.type }.eachCount()
+        )
     }
 }
