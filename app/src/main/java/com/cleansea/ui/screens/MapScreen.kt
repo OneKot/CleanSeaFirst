@@ -1,6 +1,13 @@
 package com.cleansea.ui.screens
 
 import android.Manifest
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.PorterDuff
+import android.graphics.drawable.Drawable
+import android.os.Build
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -10,39 +17,84 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.cleansea.MainViewModel
+import com.cleansea.R
+import com.cleansea.data.PollutionStatus
+import com.cleansea.ui.components.PointDetailsSheet
+import com.cleansea.ui.navigation.Screen
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
-import com.cleansea.MainViewModel
-import com.cleansea.data.PollutionStatus
-import com.cleansea.ui.components.PointDetailsSheet
-import com.cleansea.ui.navigation.Screen
+
+private fun bitmapDescriptorWithIcon(
+    context: Context,
+    @DrawableRes backgroundResId: Int,
+    @DrawableRes iconResId: Int,
+    color: Int
+): BitmapDescriptor? {
+    val background: Drawable = ContextCompat.getDrawable(context, backgroundResId)?.mutate() ?: return null
+    val icon: Drawable = ContextCompat.getDrawable(context, iconResId)?.mutate() ?: return null
+    background.setColorFilter(color, PorterDuff.Mode.SRC_IN)
+    val bitmap = Bitmap.createBitmap(background.intrinsicWidth, background.intrinsicHeight, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+    background.setBounds(0, 0, canvas.width, canvas.height)
+    background.draw(canvas)
+    val iconSizeRatio = 0.5f
+    val iconSize = (canvas.width * iconSizeRatio).toInt()
+    val horizontalPadding = (canvas.width - iconSize) / 2
+    val verticalPadding = (canvas.height - iconSize) / 2
+    val topOffset = (canvas.height * 0.1).toInt()
+    icon.setBounds(
+        horizontalPadding,
+        verticalPadding - topOffset,
+        canvas.width - horizontalPadding,
+        canvas.height - verticalPadding - topOffset
+    )
+    icon.draw(canvas)
+    return BitmapDescriptorFactory.fromBitmap(bitmap)
+}
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MapScreen(navController: NavController, viewModel: MainViewModel = viewModel()) {
-    // Разрешения для местоположения
-    val locationPermissionsState = rememberMultiplePermissionsState(
-        listOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        )
+    val context = LocalContext.current
+    val permissionsToRequest = mutableListOf(
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION
+    )
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS)
+    }
+    val multiplePermissionsState = rememberMultiplePermissionsState(
+        permissions = permissionsToRequest
     )
 
-    // Инициализация состояния камеры (Каспийское море)
+    LaunchedEffect(Unit) {
+        if (!multiplePermissionsState.allPermissionsGranted) {
+            multiplePermissionsState.launchMultiplePermissionRequest()
+        }
+    }
+
+    val isLocationPermissionGranted = multiplePermissionsState.permissions.any {
+        it.permission == Manifest.permission.ACCESS_FINE_LOCATION && it.status.isGranted
+    }
+
     val caspianSea = LatLng(41.25, 51.5)
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(caspianSea, 5f)
     }
 
-    // Настройки UI карты
     val uiSettings = remember {
         MapUiSettings(
             zoomControlsEnabled = false,
@@ -50,84 +102,78 @@ fun MapScreen(navController: NavController, viewModel: MainViewModel = viewModel
         )
     }
 
-    // Получаем выбранную точку из ViewModel для отображения BottomSheet
     val selectedPoint by viewModel.selectedPoint
 
-    // ОСНОВНОЙ КОНТЕЙНЕР ЭКРАНА. Scaffold был удален.
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        GoogleMap(
-            modifier = Modifier.fillMaxSize(),
-            cameraPositionState = cameraPositionState,
-            uiSettings = uiSettings.copy(
-                myLocationButtonEnabled = locationPermissionsState.allPermissionsGranted
-            ),
-            properties = MapProperties(
-                isMyLocationEnabled = locationPermissionsState.allPermissionsGranted
-            ),
-            onMapClick = { latLng ->
-                viewModel.newPointCoords.value = latLng // Сохраняем координаты для новой точки
-                navController.navigate(Screen.AddPoint.route)
-            }
-        ) {
-            viewModel.pollutionPoints.forEach { point ->
-                // Выбираем иконку в зависимости от статуса
-                val markerColor = when (point.status) {
-                    PollutionStatus.DETECTED -> BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
-                    PollutionStatus.IN_PROGRESS -> BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)
-                    PollutionStatus.CLEARED -> BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
+    Box(modifier = Modifier.fillMaxSize()) {
+        key(viewModel.pollutionPoints.size) {
+            GoogleMap(
+                modifier = Modifier.fillMaxSize(),
+                cameraPositionState = cameraPositionState,
+                uiSettings = uiSettings.copy(
+                    myLocationButtonEnabled = isLocationPermissionGranted
+                ),
+                properties = MapProperties(
+                    isMyLocationEnabled = isLocationPermissionGranted
+                ),
+                onMapClick = { latLng ->
+                    viewModel.newPointCoords.value = latLng
+                    navController.navigate(Screen.AddPoint.route)
                 }
-
-                Marker(
-                    state = rememberMarkerState(position = LatLng(point.latitude, point.longitude)),
-                    title = point.title,
-                    snippet = point.description,
-                    icon = markerColor,
-                    onClick = {
-                        viewModel.onMarkerClick(point) // Показываем BottomSheet
-                        true // Возвращаем true, чтобы обработать клик и не показывать стандартный InfoWindow
+            ) {
+                viewModel.pollutionPoints.forEach { point ->
+                    val markerColor = when (point.status) {
+                        PollutionStatus.DETECTED -> android.graphics.Color.RED
+                        PollutionStatus.IN_PROGRESS -> android.graphics.Color.rgb(255, 165, 0) // Orange
+                        PollutionStatus.CLEARED -> android.graphics.Color.GREEN
                     }
-                )
+
+                    val combinedIcon = bitmapDescriptorWithIcon(
+                        context = context,
+                        backgroundResId = R.drawable.ic_marker_background,
+                        iconResId = point.type.iconResId,
+                        color = markerColor
+                    )
+
+                    Marker(
+                        state = rememberMarkerState(position = LatLng(point.latitude, point.longitude)),
+                        title = stringResource(id = point.type.displayNameResId),
+                        snippet = point.description,
+                        icon = combinedIcon,
+                        onClick = {
+                            viewModel.onMarkerClick(point)
+                            true
+                        }
+                    )
+                }
             }
         }
 
-        // --- ЭЛЕМЕНТЫ ПОВЕРХ КАРТЫ ---
-
-        // Плавающие кнопки были перенесены сюда из Scaffold
         Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp),
             horizontalAlignment = Alignment.End
         ) {
-            // Кнопка для запроса местоположения
-            if (!locationPermissionsState.allPermissionsGranted) {
+            if (!isLocationPermissionGranted) {
                 ExtendedFloatingActionButton(
-                    onClick = { locationPermissionsState.launchMultiplePermissionRequest() },
+                    onClick = { multiplePermissionsState.launchMultiplePermissionRequest() },
                     icon = { Icon(Icons.Filled.LocationOn, "Моё местоположение") },
                     text = { Text("Включить GPS") },
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
             }
 
-            // Кнопка для добавления точки
             FloatingActionButton(onClick = {
-                // При клике мы просто переходим на экран добавления.
-                // Координаты будут добавлены при клике на саму карту.
-                // Можно добавить логику, чтобы при нажатии на FAB брались координаты центра карты.
                 navController.navigate(Screen.AddPoint.route)
             }) {
                 Icon(Icons.Filled.Add, "Добавить точку")
             }
         }
 
-        // Индикатор загрузки
         if (viewModel.isLoading.value) {
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
         }
 
-        // Отображение ошибок
         viewModel.errorMessage.value?.let { message ->
             Text(
                 text = message,
@@ -141,10 +187,6 @@ fun MapScreen(navController: NavController, viewModel: MainViewModel = viewModel
         }
     }
 
-    // --- МОДАЛЬНЫЕ ОКНА ---
-
-    // Отображаем BottomSheet, если точка была выбрана.
-    // Он находится вне Box, чтобы перекрывать весь экран.
     selectedPoint?.let { point ->
         PointDetailsSheet(
             point = point,
@@ -152,6 +194,9 @@ fun MapScreen(navController: NavController, viewModel: MainViewModel = viewModel
             onDismiss = { viewModel.dismissPointDetails() },
             onStatusChange = { newStatus ->
                 viewModel.updatePollutionPointStatus(point.id, newStatus)
+            },
+            onDelete = {
+                viewModel.deletePoint(point.id)
             }
         )
     }

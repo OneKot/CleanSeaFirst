@@ -10,11 +10,7 @@ import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -34,6 +30,8 @@ import com.cleansea.ui.theme.CleanSeaTheme
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    // Вся логика смены языка теперь находится в CleanSeaApplication и LocaleHelper,
+    // поэтому MainActivity остается очень простой.
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -58,6 +56,7 @@ fun AppNavigation() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    // Этот LaunchedEffect отвечает за показ "уведомлений" волонтерам
     LaunchedEffect(notificationMessage) {
         if (notificationMessage != null) {
             snackbarHostState.showSnackbar(
@@ -68,6 +67,7 @@ fun AppNavigation() {
         }
     }
 
+    // Если пользователь авторизован, показываем основной интерфейс с боковым меню
     if (viewModel.isAuthenticated.value) {
         ModalNavigationDrawer(
             drawerState = drawerState,
@@ -76,15 +76,13 @@ fun AppNavigation() {
                     scope.launch { drawerState.close() }
                 }
             },
-            gesturesEnabled = false
+            gesturesEnabled = false // Отключаем открытие меню свайпом
         ) {
             Scaffold(
                 snackbarHost = { SnackbarHost(snackbarHostState) },
                 topBar = {
                     TopAppBar(
                         title = {
-                            // --- ИЗМЕНЕНИЕ 1 ---
-                            // Получаем заголовок из ID ресурса
                             val titleResId = when (currentRoute) {
                                 Screen.Map.route -> Screen.Map.titleResId
                                 Screen.Statistics.route -> Screen.Statistics.titleResId
@@ -110,6 +108,7 @@ fun AppNavigation() {
             }
         }
     } else {
+        // Если не авторизован - показываем только экран входа
         AppNavHost(navController = navController)
     }
 }
@@ -124,21 +123,11 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         startDestination = startDestination,
         modifier = modifier
     ) {
-        composable(Screen.Auth.route) {
-            AuthScreen(navController = navController, viewModel = viewModel)
-        }
-        composable(Screen.Map.route) {
-            MapScreen(navController = navController, viewModel = viewModel)
-        }
-        composable(Screen.AddPoint.route) {
-            AddPointScreen(navController = navController, viewModel = viewModel)
-        }
-        composable(Screen.Statistics.route) {
-            StatisticsScreen(viewModel = viewModel)
-        }
-        composable(Screen.Settings.route) {
-            SettingsScreen(viewModel = viewModel)
-        }
+        composable(Screen.Auth.route) { AuthScreen(navController = navController, viewModel = viewModel) }
+        composable(Screen.Map.route) { MapScreen(navController = navController, viewModel = viewModel) }
+        composable(Screen.AddPoint.route) { AddPointScreen(navController = navController, viewModel = viewModel) }
+        composable(Screen.Statistics.route) { StatisticsScreen(viewModel = viewModel) }
+        composable(Screen.Settings.route) { SettingsScreen(viewModel = viewModel) }
     }
 }
 
@@ -151,9 +140,6 @@ fun AppDrawerContent(
     ModalDrawerSheet {
         Text(stringResource(R.string.menu), modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.titleLarge)
         Divider()
-
-        // --- ИЗМЕНЕНИЕ 2 ---
-        // Используем stringResource для всех пунктов меню
         NavigationDrawerItem(
             icon = { Icon(Icons.Default.Map, contentDescription = null) },
             label = { Text(stringResource(id = Screen.Map.titleResId)) },

@@ -1,32 +1,42 @@
 package com.cleansea.data
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
-import kotlinx.serialization.Serializable
 import com.cleansea.R
+import com.google.firebase.firestore.ServerTimestamp
+import java.util.Date
 
-@Serializable // Используем kotlinx.serialization для парсинга JSON
 data class PollutionPoint(
-    val id: String,
-    val latitude: Double,
-    val longitude: Double,
-    val title: String, // Краткое описание или тип
-    val description: String,
-    val type: PollutionType,
+    var id: String = "", // ID теперь будет присваиваться Firestore, делаем его var
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    var title: String = "", // Сделаем var, если захотим менять
+    val description: String = "",
+    val type: PollutionType = PollutionType.OTHER,
+    val status: PollutionStatus = PollutionStatus.DETECTED,
     val imageUrl: String? = null,
-    val status: PollutionStatus = PollutionStatus.DETECTED, // По умолчанию
-    val reportedBy: String = "Аноним",
-    val timestamp: Long = System.currentTimeMillis() // Время создания
-)
+    val reportedBy: String = "Аноним", // В будущем сюда можно подставлять ID пользователя
 
-@Serializable
-enum class PollutionType(@StringRes val displayNameResId: Int) {
-    TRASH(R.string.pollution_type_trash),
-    OIL_SPOT(R.string.pollution_type_oil_spot),
-    INDUSTRIAL_WASTE(R.string.pollution_type_industrial_waste),
-    OTHER(R.string.pollution_type_other)
+    // Firestore будет автоматически подставлять время создания на сервере
+    @ServerTimestamp
+    val timestamp: Date? = null
+) {
+    // Пустой конструктор, необходимый для Firestore для преобразования данных
+    constructor() : this("", 0.0, 0.0, "", "", PollutionType.OTHER, PollutionStatus.DETECTED, null)
 }
 
-@Serializable
+
+enum class PollutionType(
+    @StringRes val displayNameResId: Int,
+    @DrawableRes val iconResId: Int
+) {
+    TRASH(R.string.pollution_type_trash, R.drawable.ic_trash),
+    OIL_SPOT(R.string.pollution_type_oil_spot, R.drawable.ic_oil),
+    INDUSTRIAL_WASTE(R.string.pollution_type_industrial_waste, R.drawable.ic_factory),
+    OTHER(R.string.pollution_type_other, R.drawable.ic_other)
+}
+
+
 enum class PollutionStatus(@StringRes val displayNameResId: Int) {
     DETECTED(R.string.status_detected),
     IN_PROGRESS(R.string.status_in_progress),

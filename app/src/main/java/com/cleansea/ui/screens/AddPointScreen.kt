@@ -33,7 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.cleansea.MainViewModel
-import com.cleansea.R // <-- ВАЖНЫЙ ИМПОРТ ДЛЯ R.string...
+import com.cleansea.R
 import com.cleansea.data.PollutionPoint
 import com.cleansea.data.PollutionType
 import java.io.File
@@ -86,10 +86,10 @@ fun AddPointScreen(navController: NavController, viewModel: MainViewModel = view
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.screen_title_add_point)) }, // <-- ИЗМЕНЕНИЕ 1
+                title = { Text(stringResource(R.string.screen_title_add_point)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Назад") // Можно тоже вынести в ресурсы
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Назад")
                     }
                 }
             )
@@ -109,7 +109,7 @@ fun AddPointScreen(navController: NavController, viewModel: MainViewModel = view
                     style = MaterialTheme.typography.labelMedium
                 )
                 Spacer(Modifier.height(16.dp))
-                Text(text = "Выберите тип загрязнения", style = MaterialTheme.typography.titleMedium) // Можно вынести
+                Text(text = "Выберите тип загрязнения", style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(8.dp))
                 PollutionTypeSelector(
                     selectedType = viewModel.newPointType.value,
@@ -144,7 +144,7 @@ fun AddPointScreen(navController: NavController, viewModel: MainViewModel = view
                                 Icon(Icons.Default.Delete, contentDescription = "Удалить фото", tint = Color.White)
                             }
                         } else {
-                            Text("Добавьте фото", style = MaterialTheme.typography.bodyLarge) // Можно вынести
+                            Text("Добавьте фото", style = MaterialTheme.typography.bodyLarge)
                         }
                     }
                 }
@@ -157,7 +157,7 @@ fun AddPointScreen(navController: NavController, viewModel: MainViewModel = view
                     Button(onClick = { imagePickerLauncher.launch("image/*") }, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Default.PhotoLibrary, contentDescription = "Галерея")
                         Spacer(Modifier.width(8.dp))
-                        Text("Галерея") // Можно вынести
+                        Text("Галерея")
                     }
                     Button(onClick = {
                         val newUri = createImageUri(context)
@@ -166,33 +166,39 @@ fun AddPointScreen(navController: NavController, viewModel: MainViewModel = view
                     }, modifier = Modifier.weight(1f)) {
                         Icon(Icons.Default.CameraAlt, contentDescription = "Камера")
                         Spacer(Modifier.width(8.dp))
-                        Text("Камера") // Можно вынести
+                        Text("Камера")
                     }
                 }
                 Spacer(Modifier.height(16.dp))
                 OutlinedTextField(value = viewModel.newPointDescription.value, onValueChange = { viewModel.newPointDescription.value = it }, label = { Text("Описание (необязательно)") }, modifier = Modifier.fillMaxWidth().height(120.dp), maxLines = 4)
                 Spacer(Modifier.height(24.dp))
+
+                // Получаем локализованный текст для title в Composable-контексте
                 val titleText = stringResource(id = viewModel.newPointType.value.displayNameResId)
+
                 Button(
                     onClick = {
                         val finalImageUri = cameraImageUri ?: selectedImageUris.firstOrNull()
-                        val newPoint = PollutionPoint(
-                            id = UUID.randomUUID().toString(),
+                        // Создаем временный объект PollutionPoint для передачи в ViewModel.
+                        // ID и imageUrl будут установлены на стороне ViewModel/Firebase.
+                        val pointData = PollutionPoint(
                             latitude = viewModel.newPointCoords.value!!.latitude,
                             longitude = viewModel.newPointCoords.value!!.longitude,
                             title = titleText,
                             description = viewModel.newPointDescription.value,
-                            type = viewModel.newPointType.value,
-                            imageUrl = finalImageUri?.toString()
+                            type = viewModel.newPointType.value
                         )
-                        viewModel.addPollutionPoint(newPoint)
-                        Toast.makeText(context, "Точка добавлена!", Toast.LENGTH_SHORT).show() // Можно вынести
+
+                        // --- ИЗМЕНЕНИЕ ЗДЕСЬ: ПРАВИЛЬНЫЙ ВЫЗОВ ФУНКЦИИ ---
+                        viewModel.addPollutionPoint(context, pointData, finalImageUri)
+
+                        Toast.makeText(context, "Точка отправлена!", Toast.LENGTH_SHORT).show()
                         navController.popBackStack()
                     },
                     enabled = !viewModel.isLoading.value && imageToDisplay != null,
                     modifier = Modifier.fillMaxWidth().height(50.dp)
                 ) {
-                    Text("Сообщить") // Можно вынести
+                    Text("Сообщить")
                 }
             } else {
                 Text(
@@ -217,7 +223,6 @@ fun PollutionTypeSelector(selectedType: PollutionType, onTypeSelected: (Pollutio
                 onClick = { onTypeSelected(type) },
                 label = {
                     Text(
-                        // <-- ИЗМЕНЕНИЕ 2
                         text = stringResource(id = type.displayNameResId),
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth(),

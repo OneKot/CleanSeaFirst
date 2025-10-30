@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.maps.secrets)
     alias(libs.plugins.kotlin.serialization)
+    id ("com.google.gms.google-services")
 }
 
 android {
@@ -53,6 +54,19 @@ android {
 }
 
 dependencies {
+
+    // Firebase BOM (Bill of Materials)
+    implementation(platform(libs.firebase.bom.v3310))
+
+    // Firebase Authentication
+    implementation(libs.firebase.auth.ktx)
+
+    // Firestore Database
+    implementation(libs.firebase.firestore.ktx)
+
+    // Firebase Storage (для картинок)
+    implementation(libs.firebase.storage.ktx)
+    implementation(libs.firebase.messaging.ktx)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
