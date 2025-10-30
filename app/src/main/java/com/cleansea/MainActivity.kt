@@ -69,7 +69,7 @@ fun AppNavigation() {
                             val title = when (currentRoute) {
                                 Screen.Map.route -> Screen.Map.title
                                 Screen.Statistics.route -> Screen.Statistics.title
-                                else -> "Clean Sea"
+                                else -> "Чистый Каспий"
                             }
                             Text(title)
                         },

@@ -17,11 +17,16 @@ data class PollutionPoint(
 )
 
 @Serializable
-enum class PollutionType {
-    TRASH, OIL_SPOT, INDUSTRIAL_WASTE, OTHER
+enum class PollutionType(val displayName: String) {
+    TRASH("Мусор"),
+    OIL_SPOT("Нефтяное пятно"),
+    INDUSTRIAL_WASTE("Промышленные отходы"),
+    OTHER("Другое")
 }
 
 @Serializable
-enum class PollutionStatus {
-    DETECTED, IN_PROGRESS, CLEARED
+enum class PollutionStatus(val displayName: String) {
+    DETECTED("Обнаружено"),
+    IN_PROGRESS("В работе"),
+    CLEARED("Очищено")
 }

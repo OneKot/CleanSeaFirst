@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -176,7 +177,7 @@ fun AddPointScreen(navController: NavController, viewModel: MainViewModel = view
                             id = UUID.randomUUID().toString(),
                             latitude = viewModel.newPointCoords.value!!.latitude,
                             longitude = viewModel.newPointCoords.value!!.longitude,
-                            title = viewModel.newPointType.value.name,
+                            title = viewModel.newPointType.value.displayName,
                             description = viewModel.newPointDescription.value,
                             type = viewModel.newPointType.value,
                             imageUrl = viewModel.newPointImageUrl.value
@@ -204,13 +205,23 @@ fun PollutionTypeSelector(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         PollutionType.values().forEach { type ->
             FilterChip(
+                modifier = Modifier.weight(1f),
                 selected = selectedType == type,
                 onClick = { onTypeSelected(type) },
-                label = { Text(type.name.replace('_', ' ').replaceFirstChar { it.uppercase() }) }
+                label = {
+                    Text(
+                        text = type.displayName,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                        // --- ДОБАВЛЕННЫЕ СТРОКИ ---
+                        maxLines = 1, // 1. ЗАПРЕЩАЕМ ПЕРЕНОС ТЕКСТА НА НОВУЮ СТРОКУ
+                        overflow = TextOverflow.Ellipsis // 2. (Опционально) УКАЗЫВАЕМ, КАК ОБРЕЗАТЬ ТЕКСТ
+                    )
+                }
             )
         }
     }

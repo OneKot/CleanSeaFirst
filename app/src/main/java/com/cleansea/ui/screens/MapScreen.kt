@@ -45,8 +45,8 @@ fun MapScreen(navController: NavController, viewModel: MainViewModel = viewModel
     // Настройки UI карты
     val uiSettings = remember {
         MapUiSettings(
-            zoomControlsEnabled = true,
-            myLocationButtonEnabled = false // Включается отдельно через properties
+            zoomControlsEnabled = false,
+            compassEnabled = true
         )
     }
 
@@ -60,7 +60,9 @@ fun MapScreen(navController: NavController, viewModel: MainViewModel = viewModel
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
-            uiSettings = uiSettings,
+            uiSettings = uiSettings.copy(
+                myLocationButtonEnabled = locationPermissionsState.allPermissionsGranted
+            ),
             properties = MapProperties(
                 isMyLocationEnabled = locationPermissionsState.allPermissionsGranted
             ),

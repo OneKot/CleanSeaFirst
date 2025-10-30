@@ -62,20 +62,18 @@ fun StatisticsScreen(viewModel: MainViewModel = viewModel()) {
         }
         Spacer(Modifier.height(16.dp))
 
-        // Карточка со статистикой по типам
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("Разбивка по типам", style = MaterialTheme.typography.titleLarge)
                 Spacer(Modifier.height(8.dp))
                 PollutionType.values().forEach { type ->
-                    StatRow(type.name.replace('_', ' '), stats.pointsByType[type] ?: 0)
+                    StatRow(type.displayName, stats.pointsByType[type] ?: 0)
                 }
             }
         }
     }
 }
 
-// Вспомогательный компонент для отображения строки статистики
 @Composable
 fun StatRow(label: String, value: Int) {
     Row(

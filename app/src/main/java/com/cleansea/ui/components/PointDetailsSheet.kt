@@ -38,9 +38,8 @@ fun PointDetailsSheet(
                 .padding(bottom = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Фото
             AsyncImage(
-                model = point.imageUrl ?: "https://picsum.photos/800/600", // Заглушка, если нет фото
+                model = point.imageUrl ?: "https://picsum.photos/800/600",
                 contentDescription = "Фото загрязнения",
                 modifier = Modifier
                     .fillMaxWidth()
@@ -57,7 +56,7 @@ fun PointDetailsSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = point.title,
+                    text = point.type.displayName,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -123,7 +122,7 @@ fun StatusBadge(status: PollutionStatus) {
         colors = CardDefaults.cardColors(containerColor = color)
     ) {
         Text(
-            text = status.name,
+            text = status.displayName,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
@@ -151,7 +150,7 @@ fun AdminControls(
                     onClick = { onStatusChange(status) },
                     enabled = status != currentStatus
                 ) {
-                    Text(status.name)
+                    Text(status.displayName)
                 }
             }
         }
